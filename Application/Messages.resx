@@ -129,8 +129,17 @@
   <data name="FolderIsNull" xml:space="preserve">
     <value>Folder cannot be null</value>
   </data>
+  <data name="InvalidPasswordFormat" xml:space="preserve">
+    <value>The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., @#$%^&amp;+=!).</value>
+  </data>
+  <data name="NameIsAlreadyTaken" xml:space="preserve">
+    <value>Name is already taken</value>
+  </data>
   <data name="UserAlreadyExists" xml:space="preserve">
     <value>User with this email already exists</value>
+  </data>
+  <data name="UserIsNotActivated" xml:space="preserve">
+    <value>User is not activated</value>
   </data>
   <data name="UserIsNotLogedIn" xml:space="preserve">
     <value>User is not loged in</value>

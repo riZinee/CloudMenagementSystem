@@ -11,5 +11,7 @@ namespace Domain.Interfaces
         Task<User?> GetByEmailAsync(Email email);
         Task<string?> GetPasswordHashByEmailAsync(Email email);
         Task<string?> GetSaltByEmailAsync(Email email);
+        Task<User?> GetByNameAsync(string name);
+        Task<User?> GetByActivationTokenAsync(string token);
     }
 }

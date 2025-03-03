@@ -1,10 +1,10 @@
 ﻿using Application.Interfaces;
-using AutoMapper;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using MediatR;
+using System.Text.RegularExpressions;
 namespace Application.Commands.CreateUser
 {
 
@@ -33,9 +33,26 @@ namespace Application.Commands.CreateUser
                 throw new DomainEntityAlreadyExistsException(Messages.UserAlreadyExists);
             }
 
-            var user = new User(request.Name, new Email(request.Email), request.Password);
-            user.Salt = _identityService.GenerateSalt();
-            user.PasswordHash = _identityService.HashPassword(user.PasswordHash, user.Salt);
+            existingUser = await _userRepository.GetByNameAsync(request.Name);
+
+            if (existingUser is not null)
+            {
+                throw new DomainEntityAlreadyExistsException(Messages.NameIsAlreadyTaken);
+            }
+
+            string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$";
+            Regex regex = new Regex(pattern);
+
+            if (!regex.IsMatch(request.Password))
+            {
+                throw new ValidationDomainException(Messages.InvalidPasswordFormat);
+            }
+
+
+            var salt = _identityService.GenerateSalt();
+            var passwordHash = _identityService.HashPassword(request.Password, salt);
+
+            var user = new User(request.Name, email, passwordHash, salt);
 
             await _userRepository.AddAsync(user);
 

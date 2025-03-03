@@ -1,4 +1,6 @@
-﻿
+﻿using Domain.Exceptions;
+using System.Text.RegularExpressions;
+
 namespace Domain.ValueObjects
 {
     public record Email
@@ -7,8 +9,12 @@ namespace Domain.ValueObjects
 
         public Email(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || !value.Contains("@"))
-                throw new ArgumentException("Invalid email format");
+            Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+            Match match = regex.Match(value);
+            if (string.IsNullOrWhiteSpace(value) || !match.Success)
+            {
+                throw new ValidationDomainException(Messages.InvalidEmail);
+            }
 
             Value = value;
         }

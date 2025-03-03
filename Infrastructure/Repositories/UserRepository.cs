@@ -58,5 +58,14 @@ namespace Infrastructure.Persistence
             return user.Salt;
         }
 
+        public async Task<User?> GetByNameAsync(string name)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Name == name);
+        }
+
+        public async Task<User?> GetByActivationTokenAsync(string token)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.ActivationToken == token);
+        }
     }
 }

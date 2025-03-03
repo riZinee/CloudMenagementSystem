@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Application {
+namespace Domain {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Application {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Application.Messages", typeof(Messages).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Domain.Messages", typeof(Messages).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,83 +61,29 @@ namespace Application {
         }
         
         /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Refresh Token is invalid.
+        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Invalid email format.
         /// </summary>
-        internal static string BadToken {
+        internal static string InvalidEmail {
             get {
-                return ResourceManager.GetString("BadToken", resourceCulture);
+                return ResourceManager.GetString("InvalidEmail", resourceCulture);
             }
         }
         
         /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Refresh Token is invalid or expired .
+        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Password is invalid.
         /// </summary>
-        internal static string ExpiredToken {
+        internal static string InvalidPassword {
             get {
-                return ResourceManager.GetString("ExpiredToken", resourceCulture);
+                return ResourceManager.GetString("InvalidPassword", resourceCulture);
             }
         }
         
         /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu File stream cannot be null.
+        /// Wyszukuje zlokalizowany ciąg podobny do ciągu space is less than 0.
         /// </summary>
-        internal static string FileStreamIsNull {
+        internal static string SpaceIsNegative {
             get {
-                return ResourceManager.GetString("FileStreamIsNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Folder cannot be null.
-        /// </summary>
-        internal static string FolderIsNull {
-            get {
-                return ResourceManager.GetString("FolderIsNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., @#$%^&amp;+=!)..
-        /// </summary>
-        internal static string InvalidPasswordFormat {
-            get {
-                return ResourceManager.GetString("InvalidPasswordFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Name is already taken.
-        /// </summary>
-        internal static string NameIsAlreadyTaken {
-            get {
-                return ResourceManager.GetString("NameIsAlreadyTaken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu User with this email already exists.
-        /// </summary>
-        internal static string UserAlreadyExists {
-            get {
-                return ResourceManager.GetString("UserAlreadyExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu User is not activated.
-        /// </summary>
-        internal static string UserIsNotActivated {
-            get {
-                return ResourceManager.GetString("UserIsNotActivated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu User is not loged in.
-        /// </summary>
-        internal static string UserIsNotLogedIn {
-            get {
-                return ResourceManager.GetString("UserIsNotLogedIn", resourceCulture);
+                return ResourceManager.GetString("SpaceIsNegative", resourceCulture);
             }
         }
     }

@@ -32,6 +32,7 @@ namespace Infrastructure
             serviceCollection.AddSingleton<IStorageService, LocalFileService>();
             serviceCollection.AddSingleton<IUploadProgressNotifier, UploadProgressNotifier>();
             serviceCollection.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+            serviceCollection.AddScoped<IEmailService, SmtpEmailService>();
 
             serviceCollection.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

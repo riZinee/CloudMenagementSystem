@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using MediatR;
@@ -28,11 +29,30 @@ namespace Application.Commands.LoginUser
             var email = request.Email;
             var password = request.Password;
 
-            var user = await _userRepository.GetByEmailAsync(new Email(email));
+            User user;
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                user = await _userRepository.GetByNameAsync(name);
+            }
+            else
+            {
+                user = await _userRepository.GetByEmailAsync(new Email(email));
+            }
+
+            if (user is null)
+            {
+                throw new ApplicationAuthorizationException(Messages.UserIsNotLogedIn);
+            }
 
             if (_identityService.HashPassword(password, user.Salt) != user.PasswordHash)
             {
                 throw new ApplicationAuthorizationException(Messages.UserIsNotLogedIn);
+            }
+
+            if (!user.IsActive)
+            {
+                throw new ApplicationAuthorizationException(Messages.UserIsNotActivated);
             }
 
             var refreshToken = _identityService.GenerateRefreshToken(user.Id);

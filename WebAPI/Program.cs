@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using WebAPI.Middlewares;
 
 namespace WebAPI
 {
@@ -162,8 +163,9 @@ namespace WebAPI
             app.UseRouting();
             //app.UseAuthentication();
             app.UseAuthorization();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-            app.MapHub<UploadProgressHub>("/uploadProgressHub");//.RequireAuthorization(); // Rejestracja SignalR
+            app.MapHub<UploadProgressHub>("/uploadProgressHub");
             app.MapControllers();
 
             app.Run();

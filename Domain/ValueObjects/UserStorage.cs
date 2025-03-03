@@ -37,10 +37,7 @@ namespace Domain.ValueObjects
             UsedSpace += fileSize;
         }
 
-        public void DecreaseUsedSpace(long fileSize)
-        {
-            UsedSpace = Math.Max(0, UsedSpace - fileSize);
-        }
+
     }
 }
 

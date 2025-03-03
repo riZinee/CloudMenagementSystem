@@ -22,6 +22,8 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(u => u.PasswordHash).IsRequired();
             builder.Property(u => u.Salt).IsRequired();
+            builder.Property(u => u.IsActive).IsRequired();
+            builder.Property(u => u.ActivationToken);
         }
     }
 }
