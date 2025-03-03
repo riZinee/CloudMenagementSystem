@@ -1,0 +1,12 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <h3>Strona nie została znaleziona</h3>
+    </NotFound>
+</Router>
+
+<NavLink href="/signalr">Test SignalR</NavLink>
+
+

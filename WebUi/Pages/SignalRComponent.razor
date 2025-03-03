@@ -1,0 +1,84 @@
+﻿@page "/signalr"
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject SignalRService SignalRService
+
+<InputFile OnChange="HandleFileSelected" />
+<p>Progress @progressUpdates%</p>
+
+@code {
+    private int progressUpdates = 0;
+    private HubConnection? _hubConnection;
+    private static readonly string apiUrl = "https://localhost:7132/api/files/upload"; // Adres API
+    private static readonly string hubUrl = "https://localhost:7132/uploadProgressHub"; // Adres SignalR
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine("dddddddd");
+            _hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(SignalRService.token))
+                //         .WithUrl($"{hubUrl}?access_token={userToken}", options =>
+                // {
+                //     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets
+                //                          | Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                // })
+                .Build();
+
+
+            _hubConnection.On<JsonElement>("UploadProgress", data =>
+            {
+                if (data.TryGetProperty("progress", out var progressValue))
+                {
+                    int progress = progressValue.GetInt32();
+                    progressUpdates = progress;
+
+                    InvokeAsync(StateHasChanged);
+                }
+            });
+            await _hubConnection.StartAsync();
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("kjhasdfkjh");
+            await SignalRService.refreshTokenAsync();
+
+            _hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(SignalRService.token))
+                .Build();
+
+
+            _hubConnection.On<JsonElement>("UploadProgress", data =>
+            {
+                if (data.TryGetProperty("progress", out var progressValue))
+                {
+                    int progress = progressValue.GetInt32();
+                    progressUpdates = progress;
+
+                    InvokeAsync(StateHasChanged);
+                }
+            });
+            await _hubConnection.StartAsync();
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            await SignalRService.UploadFileAsync(file.Name, file);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}
+
