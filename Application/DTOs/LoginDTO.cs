@@ -1,4 +1,4 @@
 ﻿namespace Application.DTOs
 {
-    public record LoginDTO(string jwt, string refreshToken);
+    public record LoginDTO(string Jwt, string RefreshToken);
 }

@@ -42,7 +42,7 @@ namespace WebAPI.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] LoginDTO loginDTO)
         {
-            var newToken = await _mediator.Send(new RefreshTokenCommand(loginDTO.jwt, loginDTO.refreshToken));
+            var newToken = await _mediator.Send(new RefreshTokenCommand(loginDTO.Jwt, loginDTO.RefreshToken));
             return Ok(newToken);
         }
 

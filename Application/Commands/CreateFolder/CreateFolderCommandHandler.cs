@@ -18,14 +18,14 @@ namespace Application.Commands.CreateFolder
 
         public async Task<Guid> Handle(CreateFolderCommand request, CancellationToken cancellationToken)
         {
-            var folder = await _folderRepository.GetFolderAsync(request.parentId);
+            var folder = await _folderRepository.GetFolderAsync(request.ParentId);
 
             if (folder == null)
             {
                 throw new ApplicationNullException(Messages.FolderIsNull);
             }
 
-            var subFolder = folder.CreateSubFolder(request.name, request.userId);
+            var subFolder = folder.CreateSubFolder(request.Name, request.UserId);
 
             await _folderRepository.AddFolderAsync(subFolder);
 

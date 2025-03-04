@@ -1,4 +1,4 @@
 ﻿namespace Application.DTOs
 {
-    public record PasswordDTO(string oldPassword, string newPassword);
+    public record PasswordDTO(string OldPassword, string NewPassword);
 }

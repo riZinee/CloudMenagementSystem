@@ -9,11 +9,11 @@ namespace WebAPI.Controllers
     [Authorize]
     [ApiController]
     [Route("api/files")]
-    public class FileUploadController : ControllerBase
+    public class FileController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public FileUploadController(IMediator mediator)
+        public FileController(IMediator mediator)
         {
             _mediator = mediator;
         }

@@ -21,14 +21,14 @@ namespace Application.Commands.CreateHomeCatalog
 
         public async Task<Guid> Handle(CreateHomeCatalogCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.userId);
+            var user = await _userRepository.GetByIdAsync(request.UserId);
 
             if (user == null)
             {
                 throw new ApplicationNullException(Messages.FolderIsNull);
             }
 
-            var folder = new FolderMetadata("home", request.userId, request.path);
+            var folder = new FolderMetadata("home", request.UserId, request.Path);
             user.HomeCatalog = folder.Id;
 
             await _folderRepository.AddFolderAsync(folder);

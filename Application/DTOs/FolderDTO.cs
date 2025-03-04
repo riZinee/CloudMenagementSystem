@@ -1,4 +1,4 @@
 ﻿namespace Application.DTOs
 {
-    public record FolderDTO(string name, Guid parentId);
+    public record FolderDTO(string Name, Guid ParentId);
 }

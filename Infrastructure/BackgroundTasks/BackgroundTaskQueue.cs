@@ -5,7 +5,7 @@ namespace Infrastructure.BackgroundTasks
 {
     public class BackgroundTaskQueue : IBackgroundTaskQueue
     {
-        private ConcurrentQueue<Func<CancellationToken, Task>> _workItems = new ConcurrentQueue<Func<CancellationToken, Task>>();
+        private ConcurrentQueue<Func<CancellationToken, Task>> _workItems = new();
 
         public void QueueBackgroundWorkItem(Func<CancellationToken, Task> workItem)
         {

@@ -20,10 +20,7 @@ namespace Infrastructure.Persistence
 
             domainEntities.ForEach(e => e.ClearEvents());
 
-            foreach (var domainEvent in domainEvents)
-            {
-                await mediator.Publish(domainEvent);
-            }
+            await Task.WhenAll(domainEvents.Select(e => mediator.Publish(e)));
         }
     }
 }

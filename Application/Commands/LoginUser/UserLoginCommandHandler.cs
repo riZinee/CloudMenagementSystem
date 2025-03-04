@@ -25,19 +25,15 @@ namespace Application.Commands.LoginUser
         }
         public async Task<LoginDTO> Handle(UserLoginCommand request, CancellationToken cancellationToken)
         {
-            var name = request.Name;
-            var email = request.Email;
             var password = request.Password;
 
             User user;
 
-            if (string.IsNullOrWhiteSpace(email))
+            user = await _userRepository.GetByNameAsync(request.NameOrEmail);
+
+            if (user is null)
             {
-                user = await _userRepository.GetByNameAsync(name);
-            }
-            else
-            {
-                user = await _userRepository.GetByEmailAsync(new Email(email));
+                user = await _userRepository.GetByEmailAsync(new Email(request.NameOrEmail));
             }
 
             if (user is null)

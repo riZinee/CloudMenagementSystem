@@ -19,7 +19,7 @@ namespace Domain.Entities
         public bool IsActive { get; private set; }
         public string? ActivationToken { get; private set; } = null;
 
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+        public List<IDomainEvent> DomainEvents => _domainEvents;
 
         private User() { }
 

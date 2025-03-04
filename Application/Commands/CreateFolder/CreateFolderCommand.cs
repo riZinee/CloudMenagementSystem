@@ -2,5 +2,5 @@
 
 namespace Application.Commands.CreateFolder
 {
-    public record CreateFolderCommand(string name, Guid parentId, Guid userId) : IRequest<Guid>;
+    public record CreateFolderCommand(string Name, Guid ParentId, Guid UserId) : IRequest<Guid>;
 }

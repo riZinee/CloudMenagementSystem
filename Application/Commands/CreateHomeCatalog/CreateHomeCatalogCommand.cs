@@ -2,5 +2,5 @@
 
 namespace Application.Commands.CreateHomeCatalog
 {
-    public record CreateHomeCatalogCommand(string path, Guid userId) : IRequest<Guid>;
+    public record CreateHomeCatalogCommand(string Path, Guid UserId) : IRequest<Guid>;
 }

@@ -19,21 +19,21 @@ namespace Application.Commands.ChangeUserName
 
         public async Task Handle(ChangeUserNameCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(request.userId));
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(request.UserId));
 
             if (user is null)
             {
                 throw new ApplicationAuthorizationException(Messages.UserIsNotLogedIn);
             }
 
-            var existingUser = await _userRepository.GetByNameAsync(request.name);
+            var existingUser = await _userRepository.GetByNameAsync(request.Name);
 
             if (existingUser is not null)
             {
                 throw new DomainEntityAlreadyExistsException(Messages.NameIsAlreadyTaken);
             }
 
-            user.Name = request.name;
+            user.Name = request.Name;
 
             _userRepository.Update(user);
 

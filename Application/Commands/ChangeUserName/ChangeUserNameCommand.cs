@@ -2,5 +2,5 @@
 
 namespace Application.Commands.ChangeUserName
 {
-    public record ChangeUserNameCommand(string name, string userId) : IRequest;
+    public record ChangeUserNameCommand(string Name, string UserId) : IRequest;
 }

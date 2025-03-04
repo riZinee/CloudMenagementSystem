@@ -32,7 +32,7 @@ namespace Infrastructure.BackgroundTasks
                     }
                 }
 
-                await Task.Delay(100); // Krótkie opóźnienie, żeby nie zjadać CPU
+                await Task.Delay(100);
             }
         }
     }

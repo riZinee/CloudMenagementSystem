@@ -29,7 +29,7 @@ public class FoldersController : ControllerBase
             throw new ApplicationException("");
         }
 
-        var command = new CreateFolderCommand(folderDTO.name, folderDTO.parentId, userId);
+        var command = new CreateFolderCommand(folderDTO.Name, folderDTO.ParentId, userId);
         var catalogId = await _mediator.Send(command);
         return Ok(catalogId);
     }

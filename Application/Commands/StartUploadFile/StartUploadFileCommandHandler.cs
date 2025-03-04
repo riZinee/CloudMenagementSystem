@@ -17,7 +17,7 @@ namespace Application.Commands.StatUploadFile
         {
             var uploadId = Guid.NewGuid();
 
-            await _storageService.UploadFileAsync(request.fileStream, request.destinationPath, Guid.Parse(request.userId));
+            await _storageService.UploadFileAsync(request.FileStream, request.DestinationPath, Guid.Parse(request.UserId));
             return uploadId;
         }
     }

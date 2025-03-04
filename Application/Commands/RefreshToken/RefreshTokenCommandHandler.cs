@@ -20,15 +20,15 @@ namespace Application.Commands.RefreshToken
 
         public async Task<string> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var userId = _identityService.GetIdNameFromJwt(request.token);
+            var userId = _identityService.GetIdNameFromJwt(request.Token);
 
             var refreshToken = await _refreshTokenRepository.GetByUserIdAsync(userId);
 
-            if (!_identityService.IsJwtGeneratedByThisServer(request.token) || request.token == null)
+            if (!_identityService.IsJwtGeneratedByThisServer(request.Token) || request.Token == null)
             {
                 throw new ApplicationAuthorizationException(Messages.BadToken);
             }
-            if (refreshToken.ExpiresAt < DateTime.Now || refreshToken.IsRevoked || refreshToken.Token != request.refresh)
+            if (refreshToken.ExpiresAt < DateTime.Now || refreshToken.IsRevoked || refreshToken.Token != request.Refresh)
             {
                 throw new ApplicationAuthorizationException(Messages.ExpiredToken);
             }

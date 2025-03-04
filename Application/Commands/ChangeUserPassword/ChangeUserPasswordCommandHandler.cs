@@ -22,7 +22,7 @@ namespace Application.Commands.ChangeUserPassword
 
         public async Task Handle(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(request.userId));
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(request.UserId));
 
             if (user is null)
             {
@@ -32,13 +32,13 @@ namespace Application.Commands.ChangeUserPassword
             string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$";
             Regex regex = new Regex(pattern);
 
-            if (!regex.IsMatch(request.newPassword))
+            if (!regex.IsMatch(request.NewPassword))
             {
                 throw new ValidationDomainException(Messages.InvalidPasswordFormat);
             }
 
-            var oldPasswordHash = _identityService.HashPassword(request.oldPassword, user.Salt);
-            var newPasswordHash = _identityService.HashPassword(request.newPassword, user.Salt);
+            var oldPasswordHash = _identityService.HashPassword(request.OldPassword, user.Salt);
+            var newPasswordHash = _identityService.HashPassword(request.NewPassword, user.Salt);
 
             user.ChangePassword(oldPasswordHash, newPasswordHash);
 

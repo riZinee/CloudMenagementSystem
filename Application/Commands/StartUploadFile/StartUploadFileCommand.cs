@@ -2,6 +2,6 @@
 
 namespace Application.Commands.StatUploadFile
 {
-    public record StartUploadFileCommand(string fileName, Stream fileStream, string destinationPath, string userId) : IRequest<Guid>;
+    public record StartUploadFileCommand(string FileName, Stream FileStream, string DestinationPath, string UserId) : IRequest<Guid>;
 
 }

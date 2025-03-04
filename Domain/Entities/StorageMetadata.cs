@@ -12,8 +12,8 @@ namespace Domain.Entities
         public string Path { get; set; }
         public FolderMetadata? Parent { get; set; }
 
-        protected List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
+        protected readonly List<IDomainEvent> _domainEvents = new();
+        public List<IDomainEvent> DomainEvents => _domainEvents;
 
         public StorageMetadata()
         {

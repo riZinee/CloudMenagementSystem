@@ -2,5 +2,5 @@
 
 namespace Application.Commands.ChangeUserPassword
 {
-    public record ChangeUserPasswordCommand(string oldPassword, string newPassword, string userId) : IRequest;
+    public record ChangeUserPasswordCommand(string OldPassword, string NewPassword, string UserId) : IRequest;
 }
