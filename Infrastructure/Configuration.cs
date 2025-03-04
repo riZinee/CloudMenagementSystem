@@ -27,9 +27,9 @@ namespace Infrastructure
             serviceCollection.AddScoped<IUserRepository, UserRepository>();
             serviceCollection.AddScoped<IIdentityService, IdentityService>();
             serviceCollection.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-            serviceCollection.AddScoped<IFolderRepository, FolderRepository>();
+            serviceCollection.AddScoped<IDirectoryRepository, DirectoryRepository>();
             //serviceCollection.AddSingleton<ISftpService, SftpService>();
-            serviceCollection.AddSingleton<IStorageService, LocalFileService>();
+            serviceCollection.AddSingleton<IFileService, LocalFileService>();
             serviceCollection.AddSingleton<IUploadProgressNotifier, UploadProgressNotifier>();
             serviceCollection.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
             serviceCollection.AddScoped<IEmailService, SmtpEmailService>();

@@ -4,7 +4,7 @@ using Renci.SshNet;
 
 namespace Infrastructure.Services
 {
-    public class SftpService : IStorageService
+    public class SftpService : IFileService
     {
         private readonly SftpClient _client;
 

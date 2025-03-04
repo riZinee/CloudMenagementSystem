@@ -2,11 +2,11 @@
 
 namespace Domain.Interfaces
 {
-    public interface IFolderRepository
+    public interface IDirectoryRepository
     {
-        Task AddFolderAsync(FolderMetadata folder);
-        Task<FolderMetadata?> GetFolderAsync(Guid id);
-        Task<FolderMetadata?> GetFolderWithSubfolders(Guid folderId);
+        Task AddDirectoryAsync(DirectoryMetadata directory);
+        Task<DirectoryMetadata?> GetDirectoryAsync(Guid id);
+        Task<DirectoryMetadata?> GetDirectoryWithSubdirectories(Guid directoryId);
         Task<bool> CheckLoopAsync(Guid parentId, Guid childId);
     }
 }

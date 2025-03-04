@@ -21,12 +21,12 @@ namespace Persistence.Configurations
                 .IsRequired();
 
             builder.HasDiscriminator<string>("StorageType")
-                .HasValue<FolderMetadata>("Folder")
+                .HasValue<DirectoryMetadata>("Directory")
                 .HasValue<FileMetadata>("File");
 
             builder.HasOne(f => f.Parent)
             .WithMany(f => f.SubStorage)
-            .HasForeignKey("ParentFolderId")
+            .HasForeignKey("ParentDirectoryId")
             .OnDelete(DeleteBehavior.Restrict);
         }
     }

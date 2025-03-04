@@ -1,4 +1,4 @@
-﻿using Application.Commands.CreateFolder;
+﻿using Application.Commands.CreateDirectory;
 using Application.Commands.CreateHomeCatalog;
 using Application.DTOs;
 using MediatR;
@@ -7,20 +7,20 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [Authorize]
-[Route("api/folders")]
+[Route("api/directories")]
 [ApiController]
-public class FoldersController : ControllerBase
+public class DirectoryController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public FoldersController(IMediator mediator)
+    public DirectoryController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] FolderDTO folderDTO)
+    public async Task<IActionResult> Create([FromBody] DirectoryDTO directoryDTO)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.Name));
 
@@ -29,7 +29,7 @@ public class FoldersController : ControllerBase
             throw new ApplicationException("");
         }
 
-        var command = new CreateFolderCommand(folderDTO.Name, folderDTO.ParentId, userId);
+        var command = new CreateDirectoryCommand(directoryDTO.Name, directoryDTO.ParentId, userId);
         var catalogId = await _mediator.Send(command);
         return Ok(catalogId);
     }
@@ -44,7 +44,7 @@ public class FoldersController : ControllerBase
             throw new ApplicationException("");
         }
 
-        var command = new CreateHomeCatalogCommand(path, userId);
+        var command = new CreateHomeDirectoryCommand(path, userId);
         var catalogId = await _mediator.Send(command);
         return Ok(catalogId);
     }

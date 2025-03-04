@@ -1,6 +1,6 @@
 ﻿namespace Application.Interfaces
 {
-    public interface IStorageService
+    public interface IFileService
     {
         Task UploadFileAsync(Stream fileStream, string destinationPath, Guid userId);
         Task<Stream> DownloadFileAsync(string remoteFilePath);

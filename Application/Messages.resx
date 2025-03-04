@@ -126,8 +126,8 @@
   <data name="FileStreamIsNull" xml:space="preserve">
     <value>File stream cannot be null</value>
   </data>
-  <data name="FolderIsNull" xml:space="preserve">
-    <value>Folder cannot be null</value>
+  <data name="DirectoryIsNull" xml:space="preserve">
+    <value>Directory cannot be null</value>
   </data>
   <data name="InvalidPasswordFormat" xml:space="preserve">
     <value>The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., @#$%^&amp;+=!).</value>

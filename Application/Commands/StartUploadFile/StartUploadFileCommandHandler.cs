@@ -5,9 +5,9 @@ namespace Application.Commands.StatUploadFile
 {
     public class StartUploadFileCommandHandler : IRequestHandler<StartUploadFileCommand, Guid>
     {
-        private readonly IStorageService _storageService;
+        private readonly IFileService _storageService;
 
-        public StartUploadFileCommandHandler(IStorageService storageService)
+        public StartUploadFileCommandHandler(IFileService storageService)
         {
 
             _storageService = storageService;

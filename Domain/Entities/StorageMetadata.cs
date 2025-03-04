@@ -10,7 +10,7 @@ namespace Domain.Entities
         public Guid OwnerId { get; protected set; }
         public DateTime CreatedAt { get; protected set; }
         public string Path { get; set; }
-        public FolderMetadata? Parent { get; set; }
+        public DirectoryMetadata? Parent { get; set; }
 
         protected readonly List<IDomainEvent> _domainEvents = new();
         public List<IDomainEvent> DomainEvents => _domainEvents;
@@ -19,7 +19,7 @@ namespace Domain.Entities
         {
         }
 
-        protected StorageMetadata(string name, Guid ownerId, string path, FolderMetadata? parent)
+        protected StorageMetadata(string name, Guid ownerId, string path, DirectoryMetadata? parent)
         {
             Id = Guid.NewGuid();
             Name = name;
@@ -29,7 +29,7 @@ namespace Domain.Entities
             Parent = parent;
         }
 
-        protected StorageMetadata(string name, Guid ownerId, FolderMetadata? parent)
+        protected StorageMetadata(string name, Guid ownerId, DirectoryMetadata? parent)
         {
             if (parent == null)
             {

@@ -38,9 +38,9 @@ namespace Domain.Entities
             _domainEvents.Add(new UserCreatedEvent(this));
         }
 
-        public void AddHomeCatalog(Guid folderId)
+        public void AddHomeCatalog(Guid directoryId)
         {
-            HomeCatalog = folderId;
+            HomeCatalog = directoryId;
         }
 
         public void ChangeEmail(string email)

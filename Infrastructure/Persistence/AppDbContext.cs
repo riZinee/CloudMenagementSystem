@@ -20,7 +20,7 @@ namespace Infrastructure.Persistence
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<StorageMetadata> StorageMetadata { get; set; }
-        public DbSet<FolderMetadata> Folders { get; set; }
+        public DbSet<DirectoryMetadata> Directories { get; set; }
         public DbSet<FileMetadata> Files { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

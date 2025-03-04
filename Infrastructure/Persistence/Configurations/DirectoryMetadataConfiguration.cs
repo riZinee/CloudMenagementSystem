@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Persistence.Configurations
 {
-    public class FolderMetadataConfiguration : IEntityTypeConfiguration<FolderMetadata>
+    public class DirectoryMetadataConfiguration : IEntityTypeConfiguration<DirectoryMetadata>
     {
-        public void Configure(EntityTypeBuilder<FolderMetadata> builder)
+        public void Configure(EntityTypeBuilder<DirectoryMetadata> builder)
         {
 
         }

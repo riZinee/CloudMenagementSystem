@@ -33,7 +33,7 @@ namespace Infrastructure.Migrations
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ParentFolderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ParentDirectoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     StorageType = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
                     Size = table.Column<long>(type: "bigint", nullable: true),
                     ContentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
@@ -42,8 +42,8 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_StorageMetadata", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StorageMetadata_StorageMetadata_ParentFolderId",
-                        column: x => x.ParentFolderId,
+                        name: "FK_StorageMetadata_StorageMetadata_ParentDirectoryId",
+                        column: x => x.ParentDirectoryId,
                         principalTable: "StorageMetadata",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -69,9 +69,9 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_StorageMetadata_ParentFolderId",
+                name: "IX_StorageMetadata_ParentDirectoryId",
                 table: "StorageMetadata",
-                column: "ParentFolderId");
+                column: "ParentDirectoryId");
         }
 
         /// <inheritdoc />

@@ -66,7 +66,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ParentFolderId")
+                    b.Property<Guid?>("ParentDirectoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("StorageType")
@@ -76,7 +76,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentFolderId");
+                    b.HasIndex("ParentDirectoryId");
 
                     b.ToTable("StorageMetadata");
 
@@ -131,18 +131,18 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("File");
                 });
 
-            modelBuilder.Entity("Domain.Entities.FolderMetadata", b =>
+            modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>
                 {
                     b.HasBaseType("Domain.Entities.StorageMetadata");
 
-                    b.HasDiscriminator().HasValue("Folder");
+                    b.HasDiscriminator().HasValue("Directory");
                 });
 
             modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
                 {
-                    b.HasOne("Domain.Entities.FolderMetadata", null)
+                    b.HasOne("Domain.Entities.DirectoryMetadata", null)
                         .WithMany("SubStorage")
-                        .HasForeignKey("ParentFolderId")
+                        .HasForeignKey("ParentDirectoryId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
@@ -194,7 +194,7 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.FolderMetadata", b =>
+            modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>
                 {
                     b.Navigation("SubStorage");
                 });

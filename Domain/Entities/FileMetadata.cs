@@ -12,7 +12,7 @@ namespace Domain.Entities
         {
         }
 
-        public FileMetadata(Guid userId, string fileName, long size, string contentType, string path, FolderMetadata parent) : base(fileName, userId, path, parent)
+        public FileMetadata(Guid userId, string fileName, long size, string contentType, string path, DirectoryMetadata parent) : base(fileName, userId, path, parent)
         {
             if (size <= 0)
                 throw new DomainException("Rozmiar pliku musi być większy niż 0.");
@@ -29,7 +29,7 @@ namespace Domain.Entities
             _domainEvents.Add(new FileUploadedEvent(Id, userId, fileName, size));
         }
 
-        public FileMetadata(Guid userId, string fileName, long size, string contentType, FolderMetadata parent) : base(fileName, userId, parent)
+        public FileMetadata(Guid userId, string fileName, long size, string contentType, DirectoryMetadata parent) : base(fileName, userId, parent)
         {
             if (size <= 0)
                 throw new DomainException("Rozmiar pliku musi być większy niż 0.");

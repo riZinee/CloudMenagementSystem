@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Services
 {
-    public class LocalFileService : IStorageService
+    public class LocalFileService : IFileService
     {
         private readonly string _basePath;
         private readonly IUploadProgressNotifier _uploadProgressNotifier;

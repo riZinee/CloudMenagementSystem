@@ -88,11 +88,11 @@ namespace Application {
         }
         
         /// <summary>
-        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Folder cannot be null.
+        /// Wyszukuje zlokalizowany ciąg podobny do ciągu Directory cannot be null.
         /// </summary>
-        internal static string FolderIsNull {
+        internal static string DirectoryIsNull {
             get {
-                return ResourceManager.GetString("FolderIsNull", resourceCulture);
+                return ResourceManager.GetString("DirectoryIsNull", resourceCulture);
             }
         }
         

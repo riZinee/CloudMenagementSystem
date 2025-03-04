@@ -3,15 +3,15 @@ using Domain.Entities;
 
 namespace Domain.Events
 {
-    public record FolderCreatedEvent : IDomainEvent
+    public record DirectoryCreatedEvent : IDomainEvent
     {
         public DateTime OccurredOn => DateTime.UtcNow;
-        public FolderMetadata Folder { get; set; }
+        public DirectoryMetadata Directory { get; set; }
         public User User { get; set; }
 
-        public FolderCreatedEvent(FolderMetadata folder, User user)
+        public DirectoryCreatedEvent(DirectoryMetadata directory, User user)
         {
-            Folder = folder;
+            Directory = directory;
             User = user;
         }
     }
