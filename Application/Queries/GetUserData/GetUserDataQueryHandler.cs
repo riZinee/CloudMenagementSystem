@@ -1,10 +1,10 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.Response;
 using Domain.Interfaces;
 using MediatR;
 
 namespace Application.Queries.GetUserData
 {
-    public class GetUserDataQueryHandler : IRequestHandler<GetUserDataQuery, UserDTO>
+    public class GetUserDataQueryHandler : IRequestHandler<GetUserDataQuery, UserResponse>
     {
         private readonly IUserRepository _userRepository;
 
@@ -13,11 +13,11 @@ namespace Application.Queries.GetUserData
             _userRepository = userRepository;
         }
 
-        public async Task<UserDTO> Handle(GetUserDataQuery request, CancellationToken cancellationToken)
+        public async Task<UserResponse> Handle(GetUserDataQuery request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(Guid.Parse(request.userId));
 
-            return new UserDTO(user.Name, user.Email.Value, user.UserStorage.UsedSpace, user.UserStorage.TotalSpace);
+            return new UserResponse(user.Name, user.Email.Value, user.UserStorage.UsedSpace, user.UserStorage.TotalSpace);
         }
     }
 }

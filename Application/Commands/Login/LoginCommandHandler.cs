@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.Responses;
 using Application.Exceptions;
 using Application.Interfaces;
 using Domain.Entities;
@@ -8,14 +8,14 @@ using MediatR;
 
 namespace Application.Commands.LoginUser
 {
-    public class UserLoginCommandHandler : IRequestHandler<UserLoginCommand, LoginDTO>
+    public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IIdentityService _identityService;
 
-        public UserLoginCommandHandler(IUnitOfWork unitOfWork, IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IIdentityService identityService)
+        public LoginCommandHandler(IUnitOfWork unitOfWork, IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IIdentityService identityService)
         {
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
@@ -23,7 +23,7 @@ namespace Application.Commands.LoginUser
             _identityService = identityService;
 
         }
-        public async Task<LoginDTO> Handle(UserLoginCommand request, CancellationToken cancellationToken)
+        public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var password = request.Password;
 
@@ -52,13 +52,13 @@ namespace Application.Commands.LoginUser
             }
 
             var refreshToken = _identityService.GenerateRefreshToken(user.Id);
-            var token = _identityService.GenerateJwtString(user.Id.ToString(), []);
+            var token = _identityService.GenerateJwtString(user.Id.ToString(), [user.Role.ToString()]);
 
             _userRepository.Update(user);
             await _refreshTokenRepository.AddAsync(refreshToken);
             await _unitOfWork.SaveChangesAsync();
 
-            return new LoginDTO(token, refreshToken.Token);
+            return new LoginResponse(token, refreshToken.Token);
         }
     }
 }

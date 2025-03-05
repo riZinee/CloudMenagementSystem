@@ -94,11 +94,7 @@ namespace Infrastructure.Identity
             return new RefreshToken(id, token, valid);
         }
 
-        public string GenerateJwtString
-            (
-            string name,
-            IEnumerable<string> roles
-            )
+        public string GenerateJwtString(string name, IEnumerable<string> roles)
         {
             var claims = GenerateClaims(name, roles);
             var token = GenerateJWT(claims);

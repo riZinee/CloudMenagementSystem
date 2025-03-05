@@ -1,7 +1,7 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.Response;
 using MediatR;
 
 namespace Application.Queries.GetUserData
 {
-    public record GetUserDataQuery(string userId) : IRequest<UserDTO>;
+    public record GetUserDataQuery(string userId) : IRequest<UserResponse>;
 }

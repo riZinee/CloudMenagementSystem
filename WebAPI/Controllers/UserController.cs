@@ -1,6 +1,6 @@
 ﻿using Application.Commands.ChangeUserName;
 using Application.Commands.ChangeUserPassword;
-using Application.DTOs;
+using Application.DTOs.Requests;
 using Application.Queries.GetUserData;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,21 +16,6 @@ public class UserController : ControllerBase
     public UserController(IMediator mediator)
     {
         _mediator = mediator;
-    }
-
-
-    [HttpGet("me")]
-    public IActionResult GetCurrentUser()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var email = User.FindFirstValue(ClaimTypes.Email);
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized("Nie udało się pobrać informacji o użytkowniku.");
-        }
-
-        return Ok(new { Id = userId, Email = email });
     }
 
     [HttpGet]
@@ -52,9 +37,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("password")]
-    public async Task<IActionResult> ChangePassword(PasswordDTO passwords)
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
-        var command = new ChangeUserPasswordCommand(passwords.OldPassword, passwords.NewPassword, User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var command = new ChangeUserPasswordCommand(request.OldPassword, request.NewPassword, User.FindFirstValue(ClaimTypes.NameIdentifier));
         await _mediator.Send(command);
 
         return Ok();

@@ -21,43 +21,66 @@ namespace Infrastructure.Repositories
 
         public async Task<DirectoryMetadata?> GetDirectoryAsync(Guid id)
         {
-            return await _context.Directories.FirstOrDefaultAsync(f => f.Id == id);
+            return await _context.Directories.FirstOrDefaultAsync(d => d.Id == id);
         }
 
-        public async Task<DirectoryMetadata?> GetDirectoryWithSubdirectories(Guid directoryId)
+        public async Task<DirectoryMetadata?> GetDirectoryWithSubstorageAsync(Guid directoryId)
         {
             return await _context.Directories
-                .Include(f => f.SubStorage)
-                .FirstOrDefaultAsync(f => f.Id == directoryId);
+                .Include(d => d.SubStorage)
+                .FirstOrDefaultAsync(d => d.Id == directoryId);
         }
 
-        public async Task<bool> CheckLoopAsync(Guid parentId, Guid childId)
+        public async Task<bool> CheckLoopAsync(DirectoryMetadata child, DirectoryMetadata parent)
         {
-            var visited = new HashSet<Guid>();
-            var queue = new Queue<Guid>();
-            queue.Enqueue(parentId);
+            var parentPath = parent.Path;
 
-            while (queue.Count > 0)
+            var childPath = child.Path;
+
+            if (string.IsNullOrEmpty(parentPath) || string.IsNullOrEmpty(childPath))
+                return false;
+
+            return parentPath.StartsWith(childPath);
+        }
+
+        public async Task DeleteDirectoryAsync(Guid id)
+        {
+            var directory = await GetDirectoryAsync(id);
+            if (directory == null)
+                throw new DirectoryNotFoundException();
+
+            string directoryPath = directory.Path;
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM StorageMetadata 
+                WHERE Path LIKE @p0 + '%'",
+                directoryPath);
+        }
+
+        public async Task MoveDirectoryAsync(DirectoryMetadata from, DirectoryMetadata to)
+        {
+
+            if (await CheckLoopAsync(from, to))
             {
-                var currentDirectoryId = queue.Dequeue();
-                if (currentDirectoryId == childId)
-                    return true;
-
-                var subDirectoryIds = await _context.Directories
-                    .Where(f => f.Parent.Id == currentDirectoryId)
-                    .Select(f => f.Id)
-                    .ToListAsync();
-
-                foreach (var subDirectoryId in subDirectoryIds)
-                {
-                    if (!visited.Contains(subDirectoryId))
-                    {
-                        visited.Add(subDirectoryId);
-                        queue.Enqueue(subDirectoryId);
-                    }
-                }
+                throw new InvalidOperationException();
             }
-            return false;
+
+            string oldPath = from.Path;
+            string newPath = Path.Combine(to.Path, from.Id.ToString());
+
+            from.Parent = to;
+            from.Path = newPath;
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                UPDATE StorageMetadata
+                SET Path = REPLACE(Path, @p0, @p1)
+                WHERE Path LIKE @p0 + '%'",
+                oldPath, newPath);
+        }
+
+        public void Update(DirectoryMetadata directory)
+        {
+            _context.Update(directory);
         }
     }
 }

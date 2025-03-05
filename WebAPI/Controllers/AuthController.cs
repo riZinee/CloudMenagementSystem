@@ -1,7 +1,7 @@
 ﻿using Application.Commands.CreateUser;
 using Application.Commands.LoginUser;
 using Application.Commands.RefreshToken;
-using Application.DTOs;
+using Application.DTOs.Requests;
 using Application.Interfaces;
 using Domain.Interfaces;
 using MediatR;
@@ -25,24 +25,29 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginCommand command)
+        public async Task<IActionResult> Login([FromBody] Application.DTOs.Requests.LoginRequest request)
         {
+            var command = new LoginCommand(request.NameOrEmail, request.Password);
             var response = await _mediator.Send(command);
+
             return Ok(response);
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] CreateUserCommand command)
+        public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
         {
-
+            var command = new CreateUserCommand(request.Name, request.Email, request.Password);
             var response = await _mediator.Send(command);
+
             return Ok(response);
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken([FromBody] LoginDTO loginDTO)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            var newToken = await _mediator.Send(new RefreshTokenCommand(loginDTO.Jwt, loginDTO.RefreshToken));
+            var command = new RefreshTokenCommand(request.Jwt, request.RefreshToken);
+            var newToken = await _mediator.Send(command);
+
             return Ok(newToken);
         }
 

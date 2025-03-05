@@ -30,6 +30,7 @@ namespace Infrastructure
             serviceCollection.AddScoped<IDirectoryRepository, DirectoryRepository>();
             //serviceCollection.AddSingleton<ISftpService, SftpService>();
             serviceCollection.AddSingleton<IFileService, LocalFileService>();
+            serviceCollection.AddScoped<IDirectoryService, LocalDirectoryService>();
             serviceCollection.AddSingleton<IUploadProgressNotifier, UploadProgressNotifier>();
             serviceCollection.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
             serviceCollection.AddScoped<IEmailService, SmtpEmailService>();
