@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Interfaces;
+using Domain.ValueObjects;
 using MediatR;
 
 namespace Application.Commands.MoveDirectory
@@ -8,13 +9,15 @@ namespace Application.Commands.MoveDirectory
     {
         private readonly IDirectoryRepository _directoryRepository;
         private readonly IDirectoryService _directoryService;
+        private readonly IPermissionRepository _permissionRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public MoveDirectoryCommandHandler(IDirectoryRepository directoryRepository, IDirectoryService directoryService, IUnitOfWork unitOfWork)
+        public MoveDirectoryCommandHandler(IDirectoryRepository directoryRepository, IDirectoryService directoryService, IUnitOfWork unitOfWork, IPermissionRepository permissionRepository)
         {
             _directoryRepository = directoryRepository;
             _directoryService = directoryService;
             _unitOfWork = unitOfWork;
+            _permissionRepository = permissionRepository;
         }
 
         public async Task Handle(MoveDirectoryCommand request, CancellationToken cancellationToken)
@@ -27,7 +30,11 @@ namespace Application.Commands.MoveDirectory
                 throw new ApplicationException();
             }
 
-            if (from.OwnerId != request.UserId || to.OwnerId != request.UserId)
+            var permissionFrom = await _permissionRepository.GetByUserAndStorageAsync(request.UserId, from.Id);
+            var permissionTo = await _permissionRepository.GetByUserAndStorageAsync(request.UserId, to.Id);
+
+            if ((from.OwnerId != request.UserId && !permissionFrom.Values.Contains(PermissionValue.Modify)) ||
+                (to.OwnerId != request.UserId && (!permissionTo.Values.Contains(PermissionValue.Write) && from.OwnerId != to.OwnerId)))
             {
                 throw new ApplicationException();
             }

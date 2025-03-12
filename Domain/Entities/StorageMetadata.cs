@@ -14,6 +14,7 @@ namespace Domain.Entities
 
         protected readonly List<IDomainEvent> _domainEvents = new();
         public List<IDomainEvent> DomainEvents => _domainEvents;
+        public ICollection<Permission> Permissions { get; set; } = new List<Permission>();
 
         public StorageMetadata()
         {

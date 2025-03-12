@@ -18,6 +18,8 @@ namespace Domain.Entities
         public string Salt { get; set; }
         public bool IsActive { get; private set; }
         public string? ActivationToken { get; private set; } = null;
+        public ICollection<Permission> Permissions { get; set; } = new List<Permission>();
+
 
         public List<IDomainEvent> DomainEvents => _domainEvents;
 

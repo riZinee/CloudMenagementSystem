@@ -46,6 +46,31 @@ namespace Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StorageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.PrimitiveCollection<string>("Values")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Permissions");
+                });
+
             modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
                 {
                     b.Property<Guid>("Id")
@@ -144,6 +169,25 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("File");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Permission", b =>
+                {
+                    b.HasOne("Domain.Entities.StorageMetadata", "Storage")
+                        .WithMany("Permissions")
+                        .HasForeignKey("StorageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Storage");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
                 {
                     b.HasOne("Domain.Entities.DirectoryMetadata", "Parent")
@@ -200,6 +244,16 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("UserStorage")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.User", b =>
+                {
+                    b.Navigation("Permissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>

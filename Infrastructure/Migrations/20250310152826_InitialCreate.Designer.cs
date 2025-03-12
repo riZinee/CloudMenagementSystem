@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250303144214_UserActivation")]
-    partial class UserActivation
+    [Migration("20250310152826_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,6 +47,31 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StorageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.PrimitiveCollection<string>("Values")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
@@ -96,7 +121,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ActivationToken")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("HomeCatalog")
@@ -126,6 +150,13 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>
+                {
+                    b.HasBaseType("Domain.Entities.StorageMetadata");
+
+                    b.HasDiscriminator().HasValue("Directory");
+                });
+
             modelBuilder.Entity("Domain.Entities.FileMetadata", b =>
                 {
                     b.HasBaseType("Domain.Entities.StorageMetadata");
@@ -141,11 +172,23 @@ namespace Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("File");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>
+            modelBuilder.Entity("Domain.Entities.Permission", b =>
                 {
-                    b.HasBaseType("Domain.Entities.StorageMetadata");
+                    b.HasOne("Domain.Entities.StorageMetadata", "Storage")
+                        .WithMany("Permissions")
+                        .HasForeignKey("StorageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasDiscriminator().HasValue("Directory");
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Storage");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
@@ -204,6 +247,16 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("UserStorage")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageMetadata", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.User", b =>
+                {
+                    b.Navigation("Permissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.DirectoryMetadata", b =>

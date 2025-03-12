@@ -3,6 +3,7 @@ using Application;
 using Application.Commands.CreateUser;
 using Infrastructure;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Configurations;
 using Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -146,6 +147,13 @@ namespace WebAPI
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                dbContext.Database.Migrate();
+                StoredProcedureConfiguration.EnsureStoredProceduresCreated(dbContext);
             }
 
             app.Use(async (context, next) =>
