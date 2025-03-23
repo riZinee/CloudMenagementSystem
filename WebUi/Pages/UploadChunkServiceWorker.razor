@@ -1,0 +1,191 @@
+﻿@page "/signalrChunkReload"
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject SignalRService SignalRService
+@inject IJSRuntime jsRuntime
+
+<InputFile OnChange="HandleFileSelected" />
+<p>Progress: @progressUpdates%</p>
+<p>Chunk: @currentChunk / @totalChunks</p>
+
+@code {
+    private int progressUpdates = 0;
+    private int currentChunk = 0;
+    private int totalChunks = 0;
+    private HubConnection? _hubConnection;
+    private static readonly string apiUrl = "https://localhost:7132/api/files/upload/chunk"; // Adres API
+    private static readonly string hubUrl = "https://localhost:7132/uploadProgressHub"; // Adres SignalR
+    private const int chunkSize = 5 * 1024 * 1024; // 5MB
+    private static readonly string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwYzFkM2MzNy1jMzk2LTQyYTQtOGFlZS02YWM4NGIxNDI3MWQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjAxNmE0OGY1LTYzZjEtNDU1OC05ZDUwLTZiNTI4NjMzYzVjMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzQxODkyNDIwLCJpc3MiOiJteUFwcCIsImF1ZCI6Im15QXBwIn0.XJ3HJIdB7xpxOlE-mJ0F3vAM4kUzto5j9y0jtmu2MDA";
+    private Guid? uploadId;
+    private bool isCompleted = false;
+    IBrowserFile savedFile;
+    private string savedFileName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(token))
+            .Build();
+
+        _hubConnection.On<JsonElement>("UploadProgress", data =>
+        {
+            if (data.TryGetProperty("progress", out var progressValue))
+            {
+                progressUpdates = progressValue.GetInt32();
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        await _hubConnection.StartAsync();
+
+        var uploadIdString = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "uploadId");
+        savedFileName = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "savedFileName");
+
+        if (!string.IsNullOrWhiteSpace(uploadIdString))
+        {
+            uploadId = Guid.Parse(uploadIdString);
+            if (uploadId.HasValue)
+            {
+                var status = await GetUploadStatus(uploadId.Value);
+                if (status.ValueKind == JsonValueKind.Object)
+                {
+                    status.TryGetProperty("uploadedChunks", out var currentChunkValue);
+                    status.TryGetProperty("totalChunks", out var totalChunksValue);
+                    status.TryGetProperty("isCompleted", out var isCompletedValue);
+
+                    currentChunk = currentChunkValue.GetInt32();
+                    totalChunks = totalChunksValue.GetInt32();
+                    isCompleted = isCompletedValue.GetBoolean();
+
+                    if (!isCompleted)
+                    {
+                        await ContinueUpload(uploadId.Value);
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        savedFile = e.File;
+        if (savedFile != null)
+        {
+            uploadId = Guid.NewGuid();
+            await jsRuntime.InvokeVoidAsync("localStorage.setItem", "uploadId", uploadId.ToString());
+            await jsRuntime.InvokeVoidAsync("localStorage.setItem", "savedFileName", savedFile.Name);
+            await jsRuntime.InvokeVoidAsync("localStorage.setItem", "savedFileSize", savedFile.Size.ToString());
+            await jsRuntime.InvokeVoidAsync("localStorage.setItem", "totalChunks", ((int)Math.Ceiling((double)savedFile.Size / chunkSize)).ToString());
+
+            await UploadFileInChunks(savedFile, uploadId ?? Guid.NewGuid());
+        }
+    }
+
+    private async Task UploadFileInChunks(IBrowserFile file, Guid uploadId)
+    {
+        long fileSize = file.Size;
+        totalChunks = (int)Math.Ceiling((double)fileSize / chunkSize);
+        currentChunk = 0;
+
+        using var fileStream = file.OpenReadStream(long.MaxValue);
+        var buffer = new byte[chunkSize];
+
+        for (int i = 0; i < totalChunks; i++)
+        {
+            int bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length);
+            var chunkData = new byte[bytesRead];
+            Array.Copy(buffer, chunkData, bytesRead);
+
+            using var chunkStream = new MemoryStream(chunkData);
+
+            await SendChunk(uploadId, chunkStream, file.Name, i, totalChunks);
+            currentChunk++;
+
+            InvokeAsync(StateHasChanged); // Odśwież UI
+        }
+    }
+
+    private async Task SendChunk(Guid uploadId, MemoryStream chunkStream, string fileName, int chunkIndex, int totalChunks)
+    {
+        var content = new MultipartFormDataContent
+    {
+        { new StreamContent(chunkStream), "chunk", fileName },
+        { new StringContent(uploadId.ToString()), "uploadId" },
+        { new StringContent($"uploads/{fileName}"), "destinationPath"},
+        { new StringContent(chunkIndex.ToString()), "chunkIndex" },
+        { new StringContent(totalChunks.ToString()), "totalChunks" }
+    };
+
+        using var httpClient = new HttpClient();
+
+        if (!httpClient.DefaultRequestHeaders.Contains("Authorization"))
+        {
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+        }
+
+        var response = await httpClient.PostAsync(apiUrl, content);
+        response.EnsureSuccessStatusCode();
+    }
+
+    private async Task<JsonElement> GetUploadStatus(Guid uploadId)
+    {
+        using var httpClient = new HttpClient();
+        if (!httpClient.DefaultRequestHeaders.Contains("Authorization"))
+        {
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+        }
+        var response = await httpClient.GetAsync($"{apiUrl.Replace("/upload/chunk", "")}/upload/status/{uploadId}");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<JsonElement>(content);
+    }
+
+    private async Task ContinueUpload(Guid uploadId)
+    {
+        try
+        {
+            if (savedFile == null && !string.IsNullOrEmpty(savedFileName))
+            {
+                savedFile = await jsRuntime.InvokeAsync<IBrowserFile>("Blazor.downloadFileFromLocalStorage", savedFileName);
+            }
+
+            if (savedFile != null)
+            {
+                for (int i = currentChunk; i < totalChunks; i++)
+                {
+                    using var fileStream = savedFile.OpenReadStream(long.MaxValue);
+                    fileStream.Position = i * chunkSize;
+                    var buffer = new byte[chunkSize];
+                    int bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length);
+                    var chunkData = new byte[bytesRead];
+                    Array.Copy(buffer, chunkData, bytesRead);
+                    using var chunkStream = new MemoryStream(chunkData);
+                    await SendChunk(uploadId, chunkStream, savedFile.Name, i, totalChunks);
+                    currentChunk++;
+                    InvokeAsync(StateHasChanged);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Nie można odzyskać pliku po odświeżeniu.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas kontynuacji przesyłania: {ex.Message}");
+        }
+    }
+
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}
+

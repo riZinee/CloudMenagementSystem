@@ -12,7 +12,7 @@ public class SignalRService
     private readonly NavigationManager _navigationManager;
     private static readonly string apiUrl = "http://localhost:5087/api/files/upload"; // Adres API
     private static readonly string hubUrl = "http://localhost:5087/uploadProgressHub"; // Adres SignalR
-    public string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlZjc4NmE2OS1hOTE2LTQ3YmItOTVhOS00NDA0MzY5NDRiMDUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjlmYWExODA4LTkyMmEtNGNhMy1iZjY3LWY4ODRlNzQzY2RhNSIsImV4cCI6MTc0MDkzOTI5MywiaXNzIjoibXlBcHAiLCJhdWQiOiJteUFwcCJ9.yc0jGvpS_ZWL8PR5Ux9ATveP4zBb8_PRxhIWYb36YSY";
+    public string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDg3MjFmNy02NTVmLTQwZWMtYjhhNi1iM2ZhYzI2NjYxOGMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjAxNmE0OGY1LTYzZjEtNDU1OC05ZDUwLTZiNTI4NjMzYzVjMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzQyMzEzMjg0LCJpc3MiOiJteUFwcCIsImF1ZCI6Im15QXBwIn0.m-dLPnqXaOAq_q1KnjKMkmCJlQwd_uK6Vs14UZjzRTM";
 
 
     public event Action<int> OnProgressUpdated; // Dodaj event dla UI
@@ -42,7 +42,7 @@ public class SignalRService
 
         Console.WriteLine("Wysyłanie pliku...");
 
-        var response = await _httpClient.PostAsync("https://localhost:7132/api/files/upload", content);
+        var response = await _httpClient.PostAsync("https://localhost:7132/api/files/upload/chunk", content);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -61,7 +61,7 @@ public class SignalRService
 
     public async Task refreshTokenAsync()
     {
-        var apiUrl = "https://localhost:7132/api/users/refresh"; // Zmień na prawidłowy adres API
+        var apiUrl = "https://localhost:7132/api/auth/refresh"; // Zmień na prawidłowy adres API
 
         var loginDTO = new
         {

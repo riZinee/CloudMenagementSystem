@@ -16,27 +16,18 @@ namespace Domain.ValueObjects
         }
         public UserStorage(long usedSpace, long totalSpace)
         {
-            if (totalSpace <= 0)
+            if (totalSpace < 0)
                 throw new DomainException("Całkowita przestrzeń musi być większa niż 0.");
-            if (usedSpace <= 0)
+            if (usedSpace < 0)
                 throw new DomainException("Użyta przestrzeń musi być większa niż 0.");
             TotalSpace = totalSpace;
-            UsedSpace = 0;
+            UsedSpace = usedSpace;
         }
 
         public bool CanStoreFile(long fileSize)
         {
             return UsedSpace + fileSize <= TotalSpace;
         }
-
-        public void IncreaseUsedSpace(long fileSize)
-        {
-            if (!CanStoreFile(fileSize))
-                throw new DomainException("Brak miejsca na nowy plik.");
-
-            UsedSpace += fileSize;
-        }
-
 
     }
 }

@@ -112,3 +112,15 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+#drop-area {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer; /* Zmieñ kursor na wskazuj¹cy */
+}
+
+    #drop-area.drag-over {
+        border-color: #007bff; /* Niebieski kolor, gdy plik jest nad obszarem */
+        background-color: #f0f8ff; /* Jasnoniebieskie t³o */
+    }

@@ -51,6 +51,20 @@ namespace Domain.Entities
             Path = System.IO.Path.Combine(parent.Path, Id.ToString());
         }
 
+        protected StorageMetadata(Guid id, string name, Guid ownerId, DirectoryMetadata? parent)
+        {
+            if (parent == null)
+            {
+                throw new DomainException("");
+            }
+            Id = id;
+            Name = name;
+            OwnerId = ownerId;
+            CreatedAt = DateTime.UtcNow;
+            Parent = parent;
+            Path = System.IO.Path.Combine(parent.Path, Id.ToString());
+        }
+
         public void ClearDomainEvents()
         {
             _domainEvents.Clear();

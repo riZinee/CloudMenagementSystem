@@ -23,6 +23,7 @@ namespace Infrastructure.Persistence
         public DbSet<DirectoryMetadata> Directories { get; set; }
         public DbSet<FileMetadata> Files { get; set; }
         public DbSet<Permission> Permissions { get; set; }
+        public DbSet<FileUpload> FileUploads { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

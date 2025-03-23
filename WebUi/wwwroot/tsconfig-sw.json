@@ -1,0 +1,31 @@
+﻿{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // ES2022 + "webworker" wystarczą dla ServiceWorkera
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": [ "ES2022", "webworker" ],
+
+    // Zazwyczaj w Workerze nie potrzebujesz dekoratorów – 
+    // jeśli tak, możesz je wyłączyć (lub włączyć, ale wtedy "experimentalDecorators": true)
+    // "experimentalDecorators": true,
+
+    "skipLibCheck": true, // kluczowe - ignoruje kolizje definicji w zewn. libach
+    "strict": true,
+    "moduleResolution": "node",
+    "noEmitOnError": false, // aby generował pliki .js nawet przy ostrzeżeniach
+    "outDir": "./" // Wygeneruje .js w tym samym folderze, co TS
+
+    // Ewentualnie "isolatedModules": false
+    // bo czasem "true" powoduje konflikty z plikami .d.ts
+  },
+  "include": [
+    "./service-worker-custom.ts"
+  ],
+  "exclude": [
+    "bin",
+    "obj",
+    "node_modules",
+    "**/*.d.ts"
+  ]
+}

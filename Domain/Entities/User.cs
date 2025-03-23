@@ -69,6 +69,11 @@ namespace Domain.Entities
 
             UserStorage = new UserStorage(UserStorage.UsedSpace, UserStorage.TotalSpace + space);
         }
+        public void IncreaseUsedSpace(long fileSize)
+        {
+            UserStorage = new UserStorage(UserStorage.UsedSpace + fileSize, UserStorage.TotalSpace);
+        }
+
         public void DecreaseUsedSpace(long fileSize)
         {
             UserStorage = new UserStorage(Math.Max(0, UserStorage.UsedSpace - fileSize), UserStorage.TotalSpace);

@@ -12,56 +12,33 @@
     private HubConnection? _hubConnection;
     private static readonly string apiUrl = "https://localhost:7132/api/files/upload"; // Adres API
     private static readonly string hubUrl = "https://localhost:7132/uploadProgressHub"; // Adres SignalR
+    private static readonly string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxYjM2NGQ5YS01ZmU2LTQ2MjctOGFhMS04MTU5YmM0ZmMzMTMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQwZjhjZTQ2LTdlZGItNGYwYy05N2Y4LTdiMDRkZTk1NjVmMiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzQxODA4Njg2LCJpc3MiOiJteUFwcCIsImF1ZCI6Im15QXBwIn0.AfANy0hgosZ8vecBRgkXS-fUCKhhffSc4qhriqupzpQ";
 
     protected override async Task OnInitializedAsync()
     {
-        try
+
+        Console.WriteLine("dddddddd");
+        _hubConnection = new HubConnectionBuilder()
+        .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(token))
+            //         .WithUrl($"{hubUrl}?access_token={userToken}", options =>
+            // {
+            //     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets
+            //                          | Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+            // })
+            .Build();
+
+
+        _hubConnection.On<JsonElement>("UploadProgress", data =>
         {
-            Console.WriteLine("dddddddd");
-            _hubConnection = new HubConnectionBuilder()
-            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(SignalRService.token))
-                //         .WithUrl($"{hubUrl}?access_token={userToken}", options =>
-                // {
-                //     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets
-                //                          | Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
-                // })
-                .Build();
-
-
-            _hubConnection.On<JsonElement>("UploadProgress", data =>
+            if (data.TryGetProperty("progress", out var progressValue))
             {
-                if (data.TryGetProperty("progress", out var progressValue))
-                {
-                    int progress = progressValue.GetInt32();
-                    progressUpdates = progress;
+                int progress = progressValue.GetInt32();
+                progressUpdates = progress;
 
-                    InvokeAsync(StateHasChanged);
-                }
-            });
-            await _hubConnection.StartAsync();
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine("kjhasdfkjh");
-            await SignalRService.refreshTokenAsync();
-
-            _hubConnection = new HubConnectionBuilder()
-            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(SignalRService.token))
-                .Build();
-
-
-            _hubConnection.On<JsonElement>("UploadProgress", data =>
-            {
-                if (data.TryGetProperty("progress", out var progressValue))
-                {
-                    int progress = progressValue.GetInt32();
-                    progressUpdates = progress;
-
-                    InvokeAsync(StateHasChanged);
-                }
-            });
-            await _hubConnection.StartAsync();
-        }
+                InvokeAsync(StateHasChanged);
+            }
+        });
+        await _hubConnection.StartAsync();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)

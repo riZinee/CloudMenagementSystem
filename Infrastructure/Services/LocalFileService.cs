@@ -55,7 +55,6 @@ namespace Infrastructure.Services
                         int progress = (int)((uploadedBytes * 100) / totalBytes);
 
                         Console.WriteLine(progress);
-                        //Thread.Sleep(100);
 
                         if (progress != lastProgress)
                         {
@@ -73,22 +72,81 @@ namespace Infrastructure.Services
                 fileStream.Dispose();
             }
         }
-
-        public async Task<Stream> DownloadFileAsync(string remoteFilePath)
+        public async Task<Guid> UploadFileChunkAsync(Guid uploadId, Stream chunkStream, string destinationPath, int chunkIndex, int totalChunks, Guid userId)
         {
-            string fullPath = Path.Combine(_basePath, remoteFilePath);
+            string tempDir = Path.Combine(_basePath, uploadId.ToString());
+            Directory.CreateDirectory(tempDir);
+
+            string chunkPath = Path.Combine(tempDir, $"{chunkIndex}.part");
+
+            using (var fileStream = new FileStream(chunkPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+            {
+                await chunkStream.CopyToAsync(fileStream);
+            }
+
+            var uploadedChunks = Directory.GetFiles(tempDir).Length;
+            int progress = (uploadedChunks * 100) / totalChunks;
+
+            await _uploadProgressNotifier.NotifyProgressAsync(userId.ToString(), destinationPath, progress);
+
+            if (uploadedChunks == totalChunks)
+            {
+                var guid = await MergeChunks(destinationPath, tempDir);
+                await _uploadProgressNotifier.NotifyProgressAsync(userId.ToString(), destinationPath, 100);
+                return guid;
+            }
+            return Guid.Empty;
+        }
+
+
+        private async Task<Guid> MergeChunks(string destinationPath, string tempDir)
+        {
+            var guid = Guid.NewGuid();
+            string fullPath = Path.Combine(_basePath, destinationPath);
+
+            string extension = Path.GetExtension(fullPath);
+
+            string directory = Path.GetDirectoryName(fullPath);
+
+            string newFileName = guid.ToString() + extension;
+
+            string newFullPath = Path.Combine(directory, newFileName);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var files = Directory.GetFiles(tempDir)
+                                 .OrderBy(f => int.Parse(Path.GetFileNameWithoutExtension(f)))
+                                 .ToList();
+
+            using (var outputStream = new FileStream(newFullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                foreach (var file in files)
+                {
+                    using (var inputStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        await inputStream.CopyToAsync(outputStream);
+                    }
+                    File.Delete(file);
+                }
+            }
+
+            Directory.Delete(tempDir);
+
+            return guid;
+        }
+
+
+        public async Task<Stream> DownloadFileAsync(string remoteFilePath, string contentType)
+        {
+            string fullPath = Path.Combine(_basePath, $"{remoteFilePath}.{contentType}");
 
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"Plik {remoteFilePath} nie istnieje.");
 
-            var memoryStream = new MemoryStream();
-            using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
-            {
-                await fileStream.CopyToAsync(memoryStream);
-            }
-
-            memoryStream.Position = 0;
-            return memoryStream;
+            return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
         }
 
         public async Task DeleteFileAsync(string filePath)
@@ -110,6 +168,24 @@ namespace Infrastructure.Services
 
             var files = await Task.Run(() => Directory.GetFiles(fullPath));
             return files.Select(Path.GetFileName);
+        }
+
+        public async Task MoveFileAsync(string from, string to, string name)
+        {
+            string fullFromPath = Path.Combine(_basePath, from);
+            string fullToPath = Path.Combine(_basePath, to, name);
+
+            if (!File.Exists(fullFromPath))
+                throw new FileNotFoundException($"Plik '{fullFromPath}' nie istnieje.");
+
+            // Upewnij się, że katalog docelowy istnieje
+            string destinationDirectory = Path.GetDirectoryName(fullToPath);
+            if (!Directory.Exists(destinationDirectory))
+            {
+                Directory.CreateDirectory(destinationDirectory);
+            }
+
+            await Task.Run(() => File.Move(fullFromPath, fullToPath));
         }
     }
 }

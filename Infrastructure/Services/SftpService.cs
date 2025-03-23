@@ -24,7 +24,7 @@ namespace Infrastructure.Services
             _client.Disconnect();
         }
 
-        public async Task<Stream> DownloadFileAsync(string remoteFilePath)
+        public async Task<Stream> DownloadFileAsync(string remoteFilePath, string contentType)
         {
             _client.Connect();
             var stream = new MemoryStream();
@@ -64,5 +64,16 @@ namespace Infrastructure.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<long> UploadFileChunkAsync(Guid uploadId, Stream chunkStream, string destinationPath, int chunkIndex, int totalChunks, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Guid> IFileService.UploadFileChunkAsync(Guid uploadId, Stream chunkStream, string destinationPath, int chunkIndex, int totalChunks, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

@@ -26,7 +26,84 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+    <script>
+
+        document.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('drop', function (e) {
+            e.preventDefault();
+        });
+    </script>
+    <script>
+        window.setupDropZone = (zoneId) => {
+            const zone = document.getElementById(zoneId);
+            if (zone) {
+                zone.addEventListener("drop", function (e) {
+                    e.preventDefault();
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        const dt = new DataTransfer();
+                        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                            dt.items.add(e.dataTransfer.files[i]);
+                        }
+
+                        const input = document.getElementById("hiddenFileInput");
+                        if (input) {
+                            input.files = dt.files;
+
+                            const event = new Event("change", { bubbles: true });
+                            input.dispatchEvent(event);
+                        }
+                        e.dataTransfer.clearData();
+                    }
+                });
+            }
+        };
+
+
+        window.getWebkitRelativePath = (file) => {
+            return file.webkitRelativePath || file.name;
+        };
+
+
+        document.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('drop', function (e) {
+            e.preventDefault();
+        });
+    </script>
+
+    <script>
+        window.Blazor = {
+            downloadFileFromLocalStorage: async function (fileName) {
+                const fileData = localStorage.getItem(fileName);
+                if (fileData) {
+                    const byteArray = Uint8Array.from(atob(fileData), c => c.charCodeAt(0));
+                    return new File([byteArray], fileName);
+                }
+                return null;
+            }
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.getWebkitRelativePath = (file) => {
+            return file.webkitRelativePath || file.name;
+        };
+    </script>
+
 </body>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log("Service Worker zarejestrowany:", registration);
+            })
+            .catch((error) => {
+                console.error("Błąd rejestracji Service Worker:", error);
+            });
+    }
+</script>
 
 </html>

@@ -1,0 +1,116 @@
+﻿@page "/signalrChunk2"
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject SignalRService SignalRService
+@inject IHttpClientFactory ClientFactory 
+
+<InputFile OnChange="HandleFileSelected" />
+<p>Progress: @progressUpdates%</p>
+<p>Chunk: @currentChunk / @totalChunks</p>
+
+@code {
+    private int progressUpdates = 0;
+    private int currentChunk = 0;
+    private int totalChunks = 0;
+    private HubConnection? _hubConnection;
+    private static readonly string apiUrl = "https://localhost:7132/api/files/upload/chunk"; // Adres API
+    private static readonly string hubUrl = "https://localhost:7132/uploadProgressHub"; // Adres SignalR
+    private const int chunkSize = 5 * 1024 * 1024; // 5MB
+    private static readonly string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1NDBhNGU1ZS05ZjFiLTQ0YjQtYTY1ZS1kN2I3ODBiYThiOTgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjAxNmE0OGY1LTYzZjEtNDU1OC05ZDUwLTZiNTI4NjMzYzVjMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzQyMjM0NzEwLCJpc3MiOiJteUFwcCIsImF1ZCI6Im15QXBwIn0.rhx6CEooBEZ097V5dDLcHzAjnmWXd8-yCMDD4Xyp5zE";
+    private readonly Guid dirId = Guid.Parse("A3692989-FF3F-4BE3-AAA8-FAACDCF15725");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, o => o.AccessTokenProvider = () => Task.FromResult<string?>(token))
+            .Build();
+
+        _hubConnection.On<JsonElement>("UploadProgress", data =>
+        {
+            if (data.TryGetProperty("progress", out var progressValue))
+            {
+                progressUpdates = progressValue.GetInt32();
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            await UploadFileInChunks(file);
+        }
+    }
+
+    private async Task UploadFileInChunks(IBrowserFile file)
+    {
+        var uploadId = Guid.NewGuid(); // Unikalny identyfikator uploadu
+        long fileSize = file.Size;
+        totalChunks = (int)Math.Ceiling((double)fileSize / chunkSize);
+        currentChunk = 0;
+
+        using var fileStream = file.OpenReadStream(long.MaxValue);
+        var buffer = new byte[chunkSize];
+
+        for (int i = 0; i < totalChunks; i++)
+        {
+            int bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length);
+            var chunkData = new byte[bytesRead];
+            Array.Copy(buffer, chunkData, bytesRead);
+
+            using var chunkStream = new MemoryStream(chunkData);
+
+            await SendChunk(uploadId, chunkStream, file.Name, dirId, i, totalChunks, fileSize);
+            currentChunk++;
+
+            InvokeAsync(StateHasChanged); // Odśwież UI
+        }
+    }
+
+    private async Task SendChunk
+    (
+        Guid uploadId,
+        MemoryStream chunkStream,
+        string fileName,
+        Guid directoryId,
+        int chunkIndex,
+        int totalChunks,
+        long fileSize
+    )
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(chunkStream), "chunk", fileName },
+            { new StringContent(uploadId.ToString()), "uploadId" },
+            { new StringContent(fileName), "fileName"},
+            { new StringContent(directoryId.ToString()), "directoryId"},
+            { new StringContent(chunkIndex.ToString()), "chunkIndex" },
+            { new StringContent(totalChunks.ToString()), "totalChunks" },
+            { new StringContent(fileSize.ToString()), "fileSize" }
+        };
+
+        // Zamiast tworzyć nową instancję HttpClient, użyj ClientFactory
+        var httpClient = ClientFactory.CreateClient();
+
+        if (!httpClient.DefaultRequestHeaders.Contains("Authorization"))
+        {
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+        }
+
+        var response = await httpClient.PostAsync(apiUrl, content);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}

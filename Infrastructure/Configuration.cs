@@ -36,6 +36,8 @@ namespace Infrastructure
             serviceCollection.AddScoped<IEmailService, SmtpEmailService>();
             serviceCollection.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             serviceCollection.AddScoped<IPermissionRepository, PermissionRepository>();
+            serviceCollection.AddScoped<IFileUploadRepository, FileUploadRepository>();
+            serviceCollection.AddScoped<IFileRepository, FileRepository>();
 
 
             return serviceCollection;

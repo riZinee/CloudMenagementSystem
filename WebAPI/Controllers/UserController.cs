@@ -1,5 +1,6 @@
 ﻿using Application.Commands.ChangeUserName;
 using Application.Commands.ChangeUserPassword;
+using Application.Commands.IncreaseUserSpace;
 using Application.DTOs.Requests;
 using Application.Queries.GetUserData;
 using MediatR;
@@ -40,6 +41,22 @@ public class UserController : ControllerBase
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
         var command = new ChangeUserPasswordCommand(request.OldPassword, request.NewPassword, User.FindFirstValue(ClaimTypes.NameIdentifier));
+        await _mediator.Send(command);
+
+        return Ok();
+    }
+
+    [HttpPost("storage")]
+    public async Task<IActionResult> ChangePassword(IncreaseUserStorageRequest request)
+    {
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+        if (userRole != "Admin")
+        {
+            throw new ApplicationException();
+        }
+
+        var command = new InceraseUserSpaceCommand(request.UserId, request.Space);
         await _mediator.Send(command);
 
         return Ok();

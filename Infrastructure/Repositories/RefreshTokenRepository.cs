@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
 
         public async Task AddAsync(RefreshToken refreshToken)
         {
-            _context.RefreshTokens.Add(refreshToken);
+            await _context.RefreshTokens.AddAsync(refreshToken);
         }
     }
 }

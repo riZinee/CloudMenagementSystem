@@ -1,0 +1,220 @@
+﻿@page "/drag-and-drop-upload"
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<!--
+    Obszar drag & drop (tylko blokuje domyślne akcje, kliknięcie otwiera InputFile):
+    Uwaga: Nie przypisujemy tutaj handlera drop po stronie Blazora – drop będzie obsłużony przez JS.
+-->
+<div id="dropZone" class="upload-container"
+@ondragover:preventDefault
+@ondragenter:preventDefault
+@ondragleave:preventDefault
+     @onclick="TriggerFileSelect"
+     style="border: 2px dashed #aaa; padding: 20px; text-align: center; cursor: pointer;">
+    <p>Przeciągnij i upuść pliki tutaj<br />lub kliknij, aby wybrać pliki</p>
+</div>
+
+<!-- Ukryty InputFile, którego zmiana (OnChange) wywoła przesyłanie -->
+<InputFile id="hiddenFileInput" style="display: none;" OnChange="HandleFileSelected" multiple />
+
+<hr />
+
+<h3>Status przesyłania</h3>
+@if (uploadStates.Count == 0)
+{
+    <p>Brak aktywnych przesyłek.</p>
+}
+else
+{
+    <ul>
+        @foreach (var state in uploadStates)
+        {
+            <li>
+                <strong>@state.FileName</strong> (<em>@state.WebkitRelativePath</em>) –
+                @state.Progress% ukończono (Kawałek: @state.CurrentChunk / @state.TotalChunks)
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    public class UploadState
+    {
+        public Guid UploadId { get; set; }
+        public string FileName { get; set; } = "";
+        public string WebkitRelativePath { get; set; } = "";
+        public long FileSize { get; set; }
+        public int TotalChunks { get; set; }
+        public int CurrentChunk { get; set; }  // Numer pierwszego jeszcze nie wysłanego kawałka
+        public int Progress { get; set; }      // Postęp przesyłania w procentach
+    }
+
+    private List<UploadState> uploadStates = new List<UploadState>();
+    private const string StorageKey = "uploadStates";
+
+    // Znany endpoint API do wysyłania chunków
+    private static readonly string apiUrl = "https://localhost:7132/api/files/upload/chunk";
+    private const int chunkSize = 5 * 1024 * 1024; // 5 MB
+    private const string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXX";  // przykładowy token JWT
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RestoreUploadStates();
+    }
+
+    // Po pierwszym renderze zarejestrujemy handler dropu w obszarze dropZone
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("setupDropZone", "dropZone");
+        }
+    }
+
+    private async Task SaveUploadStates()
+    {
+        try
+        {
+            string json = JsonSerializer.Serialize(uploadStates);
+            await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", StorageKey, json);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Błąd zapisu stanu: {ex.Message}");
+        }
+    }
+
+    private async Task RestoreUploadStates()
+    {
+        try
+        {
+            var json = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", StorageKey);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonSerializer.Deserialize<List<UploadState>>(json);
+                if (list != null)
+                {
+                    uploadStates = list;
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Błąd przy przywracaniu stanu: {ex.Message}");
+        }
+    }
+
+    /// Obsługa zmiany InputFile – wywoływana zarówno przy wyborze, jak i przy dropie
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            string webkitPath = await GetWebkitRelativePath(file);
+            var state = uploadStates.FirstOrDefault(s => s.WebkitRelativePath == webkitPath && s.FileSize == file.Size);
+            if (state == null)
+            {
+                state = new UploadState
+                    {
+                        UploadId = Guid.NewGuid(),
+                        FileName = file.Name,
+                        WebkitRelativePath = webkitPath,
+                        FileSize = file.Size,
+                        TotalChunks = (int)Math.Ceiling((double)file.Size / chunkSize),
+                        CurrentChunk = 0,
+                        Progress = 0
+                    };
+                uploadStates.Add(state);
+                await SaveUploadStates();
+            }
+            await UploadFileInChunks(file, state);
+        }
+    }
+
+    private async Task<string> GetWebkitRelativePath(IBrowserFile file)
+    {
+        try
+        {
+            string path = await JSRuntime.InvokeAsync<string>("getWebkitRelativePath", file);
+            return string.IsNullOrWhiteSpace(path) ? file.Name : path;
+        }
+        catch
+        {
+            return file.Name;
+        }
+    }
+
+    private async Task UploadFileInChunks(IBrowserFile file, UploadState state)
+    {
+        using var stream = file.OpenReadStream(file.Size);
+        byte[] buffer = new byte[chunkSize];
+        stream.Position = state.CurrentChunk * chunkSize;
+
+        for (int i = state.CurrentChunk; i < state.TotalChunks; i++)
+        {
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            if (bytesRead <= 0)
+                break;
+            byte[] chunkData = new byte[bytesRead];
+            Array.Copy(buffer, chunkData, bytesRead);
+
+            bool success = false;
+            int attempts = 0;
+            while (!success && attempts < 3)
+            {
+                try
+                {
+                    using var memStream = new MemoryStream(chunkData);
+                    await SendChunk(state, memStream, i);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    attempts++;
+                    Console.Error.WriteLine($"Błąd wysyłania kawałka {i} (próba {attempts}): {ex.Message}");
+                    await Task.Delay(1000);
+                }
+            }
+            if (!success)
+            {
+                Console.Error.WriteLine($"Nie udało się wysłać kawałka {i} dla pliku {file.Name}");
+                break;
+            }
+            state.CurrentChunk = i + 1;
+            state.Progress = (int)((state.CurrentChunk / (double)state.TotalChunks) * 100);
+            await SaveUploadStates();
+            StateHasChanged();
+        }
+    }
+
+    private async Task SendChunk(UploadState state, MemoryStream chunkStream, int chunkIndex)
+    {
+        using var content = new MultipartFormDataContent();
+        content.Add(new StreamContent(chunkStream), "chunk", state.FileName);
+        content.Add(new StringContent(state.UploadId.ToString()), "uploadId");
+        content.Add(new StringContent(state.FileName), "fileName");
+        content.Add(new StringContent(state.WebkitRelativePath), "webkitRelativePath");
+        content.Add(new StringContent(chunkIndex.ToString()), "chunkIndex");
+        content.Add(new StringContent(state.TotalChunks.ToString()), "totalChunks");
+
+        using var httpClient = new HttpClient();
+        if (!httpClient.DefaultRequestHeaders.Contains("Authorization"))
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+        var response = await httpClient.PostAsync(apiUrl, content);
+        response.EnsureSuccessStatusCode();
+    }
+
+    // Wyłącznie przy kliknięciu – otwieramy okno wyboru plików
+    private async Task TriggerFileSelect()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('hiddenFileInput').click()");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.CompletedTask;
+    }
+}

@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -14,6 +15,9 @@ public class Program
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5087") });
         builder.Services.AddScoped<SignalRService>();
+        builder.Services.AddBlazoredLocalStorage();
+        builder.Services.AddHttpClient();
+
 
         await builder.Build().RunAsync();
     }
